@@ -333,7 +333,7 @@ main (int      argc,
       if (setuid (ruid) < 0)
         fatal_errno ("setuid");
 
-      if (execv (program, program_argv) < 0)
+      if (execvp (program, program_argv) < 0)
         fatal_errno ("execv");
     }
 
