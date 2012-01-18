@@ -103,6 +103,7 @@ main (int      argc,
 {
   const char *argv0;
   const char *chroot_dir;
+  const char *chdir_target = "/";
   const char *program;
   uid_t ruid, euid, suid;
   gid_t rgid, egid, sgid;
@@ -200,6 +201,14 @@ main (int      argc,
           unshare_net = 1;
           after_mount_arg_index += 1;
         }
+      else if (strcmp (arg, "--chdir") == 0)
+        {
+          if ((argc - after_mount_arg_index) < 2)
+            fatal ("--chdir takes one argument");
+
+          chdir_target = argv[after_mount_arg_index+1];
+          after_mount_arg_index += 2;
+        }
       else
         break;
     }
@@ -207,7 +216,7 @@ main (int      argc,
   bind_mounts = reverse_mount_list (bind_mounts);
 
   if ((argc - after_mount_arg_index) < 2)
-    fatal ("usage: %s [--unshare-ipc] [--unshare-pid] [--unshare-net] [--mount-proc DIR] [--mount-readonly DIR] [--mount-bind SOURCE DEST] ROOTDIR PROGRAM ARGS...", argv0);
+    fatal ("usage: %s [--unshare-ipc] [--unshare-pid] [--unshare-net] [--mount-proc DIR] [--mount-readonly DIR] [--mount-bind SOURCE DEST] [--chdir DIR] ROOTDIR PROGRAM ARGS...", argv0);
   chroot_dir = argv[after_mount_arg_index];
   program = argv[after_mount_arg_index+1];
   program_argv = argv + after_mount_arg_index + 1;
@@ -314,7 +323,7 @@ main (int      argc,
       /* Actually perform the chroot. */
       if (chroot (chroot_dir) < 0)
         fatal_errno ("chroot");
-      if (chdir ("/") < 0)
+      if (chdir (chdir_target) < 0)
         fatal_errno ("chdir");
 
       /* Switch back to the uid of our invoking process.  These calls are
