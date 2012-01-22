@@ -226,8 +226,6 @@ main (int      argc,
   if (getresuid (&ruid, &euid, &suid) < 0)
     fatal_errno ("getresuid");
 
-  if (ruid == 0)
-    fatal ("error: ruid is 0");
   if (rgid == 0)
     rgid = ruid;
 
