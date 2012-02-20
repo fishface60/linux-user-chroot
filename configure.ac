@@ -22,6 +22,10 @@ AC_SUBST(WARN_CFLAGS)
 LT_PREREQ([2.2.4])
 LT_INIT([disable-static])
 
+AC_CHECK_HEADER([linux/securebits.h],
+	        [AC_DEFINE([HAVE_LINUX_SECUREBITS_H], [1],
+		 [Define to 1 if we have securebits.h])])
+
 AC_PATH_PROG([XSLTPROC], [xsltproc])
 AM_CONDITIONAL(HAVE_XSLTPROC, test x"$XSLTPROC" != x)
 

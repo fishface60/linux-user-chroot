@@ -37,8 +37,13 @@
 #include <sys/mount.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
-#include <linux/securebits.h>
 #include <sched.h>
+#ifdef HAVE_LINUX_SECUREBITS_H
+#include <linux/securebits.h>
+#else
+#define SECBIT_NOROOT (1 << 0)
+#define SECBIT_NOROOT_LOCKED (1 << 1)
+#endif
 
 static void fatal (const char *message, ...) __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 2)));
 static void fatal_errno (const char *message) __attribute__ ((noreturn));
