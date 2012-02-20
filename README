@@ -1,0 +1,69 @@
+Motivation
+----------
+
+It's really useful for build systems to be able to call chroot(2) as a
+regular (non-root) user.
+
+First, it ensures that the build isn't picking up files it shouldn't
+be.  This helps avoid the problem of "host contamination", where
+e.g. we want libfoo.h from inside our root, not the one outside the
+root.
+
+Second, it helps avoid the fragility inherent in having to set up a
+large set of environment variables pointing to our root (e.g. PATH,
+LD_LIBRARY_PATH, XDG_DATA_DIRS, etc.).  Once we chroot, PATH is just
+the same as it normally is (/bin:/usr/bin).
+
+Security
+--------
+
+The historical reason Unix doesn't allow chroot(2) as non-root is
+because of setuid binaries.  It's trivial to use chroot to create a
+hostile environment, then execute a setuid binary to subvert it.
+
+This tool closes that historical hole by simply disallowing privilege
+gain by execution of setuid binaries.  It creates a "nosuid" bind
+mount over "/".
+
+Abilities granted
+-----------------
+
+However in order to make a usable system, it's not quite enough to be
+able to call chroot(2).  A lot of Unix software expects
+e.g. /dev/null, and Linux /proc is also fairly widely used.  So
+this tool also allows creating Linux "bind mounts".  This is how
+one can expose the "host" /dev inside the chroot.  Also, this tool
+allows mounting procfs.
+
+In addition, this tool exposes several of the Linux "unshare"
+capabilities such as:
+
+  * CLONE_NEWNET - create a new, empty networking stack.  Because
+    the child process won't have the privilges to manipulate the
+    network, this will result in no networking (including loopback)
+    which ensures that e.g. the build process isn't downloading more
+    code.
+
+  * CLONE_NEWPID - create a new PID namespace.  For example, if the
+    build script runs some test scripts that start processes, "pidof"
+    won't accidentally pick up a similarly-named process outside of
+    the root.
+
+  * CLONE_NEWIPC - get a new SysV IPC namespace.  This is just further
+    isolation.
+
+See "man 2 clone" for more information.
+
+Example usage
+-------------
+
+Note here all files are owned by the user.
+
+$ mkdir -p /path/to/my/chroot/usr/src/project
+$ linux-user-chroot --unshare-pid --unshare-net --unshare-pid \
+   --mount-proc /proc --mount-bind /dev /dev \
+   --mount-bind /home/user/source/project /usr/src/project \
+   /path/to/my/chroot /bin/sh
+
+Here we're creating a bind mount inside the chroot to outside.  This
+helps avoid copying files around.
