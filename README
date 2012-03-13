@@ -67,3 +67,12 @@ $ linux-user-chroot --unshare-pid --unshare-net --unshare-pid \
 
 Here we're creating a bind mount inside the chroot to outside.  This
 helps avoid copying files around.
+
+Installing
+----------
+
+This binary can be installed in two modes:
+
+1) uwsr-xr-x  root:root - Executable by everyone
+2) uwsr-x---  root:somegroup - Executable only by somegroup
+
