@@ -27,3 +27,16 @@ network namespace is very high - it does mean that e.g. one could make
 But most setuid programs *should* be carefully checking errors
 anyways.
 
+Building
+--------
+
+To enable building this helper, pass --enable-newnet-helper to
+configure.
+
+Running
+-------
+
+$ linux-user-chroot-newnet curl http://google.com
+curl: (6) Could not resolve host: google.com; Unknown error
+$ linux-user-chroot-newnet /bin/bash
+$ # you're now in a shell without networking

@@ -81,7 +81,7 @@ main (int      argc,
   argv++;
 
   if (argc < 1)
-    fatal ("PROGRAM argument must be specified");
+    fatal ("PROGRAM [ARGS]... Run PROGRAM in an isolated network namespace");
 
   program = argv[0];
   program_argv = argv;
