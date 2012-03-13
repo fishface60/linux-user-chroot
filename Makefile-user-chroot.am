@@ -20,3 +20,11 @@ bin_PROGRAMS += linux-user-chroot
 linux_user_chroot_SOURCES = src/linux-user-chroot.c
 
 linux_user_chroot_CFLAGS = $(AM_CFLAGS)
+
+if BUILD_NEWNET_HELPER
+bin_PROGRAMS += linux-user-chroot-newnet
+endif
+
+linux_user_chroot_newnet_SOURCES = src/linux-user-chroot-newnet.c
+
+linux_user_chroot_newnet_CFLAGS = $(AM_CFLAGS)
