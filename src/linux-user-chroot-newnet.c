@@ -84,7 +84,7 @@ main (int      argc,
     fatal ("PROGRAM argument must be specified");
 
   program = argv[0];
-  program_argv = argv + 1;
+  program_argv = argv;
 
   if (getresgid (&rgid, &egid, &sgid) < 0)
     fatal_errno ("getresgid");
