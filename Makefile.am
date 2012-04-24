@@ -17,3 +17,6 @@
 
 include Makefile-stub.am
 include Makefile-user-chroot.am
+
+release-tag:
+	git tag -m "Release $(VERSION)" v$(VERSION)

@@ -1,0 +1,6 @@
+2012.1
+------
+
+This is the first release with a new version numbering scheme of
+<YEAR.SERIAL>.  No important code changes, but we now include a
+contributed manual page from Lars Wirzenius.
