@@ -28,6 +28,7 @@ bin_PROGRAMS =
 sbin_PROGRAMS =
 bin_SCRIPTS =
 sbin_SCRIPTS =
+dist_man_MANS =
 libexec_PROGRAMS =
 noinst_LTLIBRARIES =
 noinst_PROGRAMS =

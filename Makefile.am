@@ -17,6 +17,3 @@
 
 include Makefile-stub.am
 include Makefile-user-chroot.am
-if HAVE_XSLTPROC
-include Makefile-docbook-man.am
-endif

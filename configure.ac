@@ -26,8 +26,11 @@ AC_CHECK_HEADER([linux/securebits.h],
 	        [AC_DEFINE([HAVE_LINUX_SECUREBITS_H], [1],
 		 [Define to 1 if we have securebits.h])])
 
-AC_PATH_PROG([XSLTPROC], [xsltproc])
-AM_CONDITIONAL(HAVE_XSLTPROC, test x"$XSLTPROC" != x)
+AC_ARG_ENABLE(documentation,
+              AC_HELP_STRING([--enable-documentation],
+                             [build documentation]),,
+              enable_documentation=yes)
+AM_CONDITIONAL(BUILD_DOCUMENTATION, test x$enable_documentation = xyes)
 
 AC_ARG_ENABLE(newnet-helper,
               AC_HELP_STRING([--enable-newnet-helper],

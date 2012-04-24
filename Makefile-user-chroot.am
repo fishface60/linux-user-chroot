@@ -28,3 +28,7 @@ endif
 linux_user_chroot_newnet_SOURCES = src/linux-user-chroot-newnet.c
 
 linux_user_chroot_newnet_CFLAGS = $(AM_CFLAGS)
+
+if BUILD_DOCUMENTATION
+dist_man_MANS += doc/linux-user-chroot.8
+endif

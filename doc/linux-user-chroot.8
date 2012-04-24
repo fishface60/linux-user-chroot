@@ -1,0 +1,103 @@
+.\" Copyright 2012  Codethink Limited
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it would be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software Foundation,
+.\" Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+.\"
+.TH LINUX-USER-CHROOT 8
+.SH NAME
+linux\-user\-chroot \- safely allow normal users to chroot
+.SH SYNOPSIS
+.B linux\-user\-chroot
+.RB [ --unshare-ipc ] 
+.RB [ --unshare-pid ] 
+.RB [ --unshare-net ] 
+.RB [ --mount-proc " \fIDIR\fR] 
+.RB [ --mount-readonly " \fIDIR\fR"] 
+.RB [ --mount-bind " \fISOURCE DEST\fR"] 
+.RB [ --chdir " \fIDIR\fR"]
+.I ROOTDIR 
+.I PROGRAM 
+.IR ARGS...
+.SH DESCRIPTION
+.B linux\-user\-chroot
+is a tool meant for building software in a clean environment.
+The user needs to create a directory tree with the build dependencies needed,
+and only those,
+and then
+.B linux\-user\-chroot
+runs the actual build commands such that the commands only see the directory
+tree.
+This is useful for ensuring the build gets the right version of its build
+dependencies, for example.
+.PP
+.B linux\-user\-chroot
+works similary to
+.BR chroot (8),
+but does not require the caller to have root privileges.
+It uses Linux containers to restrict the chroot to make this safe.
+The command run inside the chroot is run as the calling user, not as root.
+.PP
+.B linux\-user\-chroot
+executes a command, and sets the root directory for the command to the
+directory specified by the user
+.RI ( ROOTDIR ).
+Additionally, it creates a "nosuid" bind mount over the root filesystem,
+to prevent the build from gaining privileges using setuid binaries.
+The command can further be restricted from accessing the network,
+and it can be set up with new process ID and SysV IPC namespaces.
+.SH OPTIONS
+.TP
+.BR \-\-unshare\-ipc
+Create a new SysV IPC namespace for the command.
+.TP
+.BR \-\-unshare\-pid
+Create a new process ID (PID) namespace for the command.
+This prevents the command from seeing any other processes in the system,
+except itself and the processes it itself creates.
+.TP
+.BR \-\-unshare\-net
+Create a new, empty networking stack.
+This prevents the command from using any networking,
+including loopback.
+.TP
+.BI \-\-mount\-proc " DIR"
+Mount the proc filesystem at
+.IR DIR .
+.TP
+.BI \-\-mount\-readonly " DIR"
+Make 
+.I DIR
+be read-only for the command.
+.TP
+.BI \-\-mount\-bind " SOURCE DEST"
+Add a bind mount while the command is executing.
+.TP
+.BI \-\-chdir " DIR"
+After setting the new root directory for the command,
+change the current working directory to be 
+.IR DIR .
+.SH "EXIT STATUS"
+The exit status is the exit status of the executed command,
+or 1 if 
+.B linux\-user\-chroot
+failed to execute the command.
+.SH EXAMPLE
+To build software in the real system, but without networking:
+.IP
+.nf
+linux\-user\-chroot \-\-unshare\-net \-\-chdir "$(pwd)"
+make clean all check
+.fi
+.SH "SEE ALSO"
+.BR chroot (8).
