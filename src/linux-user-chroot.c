@@ -24,6 +24,8 @@
  * Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "config.h"
+
 #define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
@@ -145,7 +147,17 @@ main (int      argc,
         fatal ("Too many mounts (maximum of %u)", n_mounts);
       n_mounts++;
 
-      if (strcmp (arg, "--mount-bind") == 0)
+      if (strcmp (arg, "--help") == 0)
+        {
+          printf ("%s\n", "See \"man linux-user-chroot\"");
+          exit (0);
+        }
+      else if (strcmp (arg, "--version") == 0)
+        {
+          printf ("%s\n", PACKAGE_STRING);
+          exit (0);
+        }
+      else if (strcmp (arg, "--mount-bind") == 0)
         {
           if ((argc - after_mount_arg_index) < 3)
             fatal ("--mount-bind takes two arguments");
