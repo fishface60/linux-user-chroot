@@ -1,13 +1,23 @@
-Motivation
-----------
+Summary
+-------
 
-It's really useful for build systems to be able to call chroot(2) as a
-regular (non-root) user.
+This tool allows regular (non-root) users to call chroot(2), create
+Linux bind mounts, and use some Linux container features.  It's
+primarily intended for use by build systems.
 
-First, it ensures that the build isn't picking up files it shouldn't
-be.  This helps avoid the problem of "host contamination", where
-e.g. we want libfoo.h from inside our root, not the one outside the
-root.
+Project information
+-------------------
+
+There's no web page yet; send patches to
+Colin Walters <walters@verbum.org>
+
+Why is this useful?
+-------------------
+
+For build systems, being inside a chroot ensures that the build isn't
+picking up files it shouldn't be.  This helps avoid the problem of
+"host contamination", where e.g. we want libfoo.h from inside our
+root, not the one outside the root.
 
 Second, it helps avoid the fragility inherent in having to set up a
 large set of environment variables pointing to our root (e.g. PATH,
@@ -17,13 +27,27 @@ the same as it normally is (/bin:/usr/bin).
 Security
 --------
 
+**** IMPORTANT NOTE ****
+
+Installing this tool accessible to all users significantly increases
+their ability to perform local, authenticated denial of service
+attacks.  The intended mitigation against this is to ensure the tool
+is only executable by certain users.
+
+**** IMPORTANT NOTE ****
+
 The historical reason Unix doesn't allow chroot(2) as non-root is
 because of setuid binaries.  It's trivial to use chroot to create a
 hostile environment, then execute a setuid binary to subvert it.
 
 This tool closes that historical hole by simply disallowing privilege
 gain by execution of setuid binaries.  It creates a "nosuid" bind
-mount over "/".
+mount over "/".  This restriction is typically irrelevant for build
+systems.
+
+However, this tool also allows creating bind mounts, which currently
+have no resource controls.  This is why this tool is not intended to
+be installed by default.
 
 Abilities granted
 -----------------
@@ -75,4 +99,3 @@ This binary can be installed in two modes:
 
 1) uwsr-xr-x  root:root - Executable by everyone
 2) uwsr-x---  root:somegroup - Executable only by somegroup
-
