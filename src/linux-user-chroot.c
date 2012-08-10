@@ -275,7 +275,7 @@ main (int      argc,
     clone_flags |= CLONE_NEWNET;
 
   if ((child = syscall (__NR_clone, clone_flags, NULL)) < 0)
-    perror ("clone");
+    fatal_errno ("clone");
 
   if (child == 0)
     {
