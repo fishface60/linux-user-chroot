@@ -5,7 +5,8 @@
  * "safely": I believe that this program, when deployed as setuid on a
  * typical "distribution" such as RHEL or Debian, does not, even when
  * used in combination with typical software installed on that
- * distribution, allow privilege escalation.
+ * distribution, allow privilege escalation.  See the README for more
+ * details.
  *
  * Copyright 2011,2012 Colin Walters <walters@verbum.org>
  *
@@ -30,6 +31,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
@@ -45,6 +47,10 @@
 #else
 #define SECBIT_NOROOT (1 << 0)
 #define SECBIT_NOROOT_LOCKED (1 << 1)
+#endif
+
+#ifndef PR_SET_NO_NEW_PRIVS
+#define PR_SET_NO_NEW_PRIVS	38
 #endif
 
 static void fatal (const char *message, ...) __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 2)));
@@ -274,16 +280,20 @@ main (int      argc,
   if (child == 0)
     {
       /*
-       * SECBIT_NOROOT helps close the main historical reason why only
-       * uid 0 can chroot(2) - because unprivileged users can create
-       * hard links to setuid binaries, and possibly confuse them into
-       * looking at data (or loading libraries) that they don't
-       * expect, and thus elevating privileges.  With this, executing
-       * a setuid program doesn't gain us any new Linux capabilities
-       * (but it still changes uid).  See below for where we create a
-       * MS_NOSUID bind mount.
+       * First, we attempt to use PR_SET_NO_NEW_PRIVS, since it does
+       * exactly what we want - ensures the child can not gain any
+       * privileges, even attempting to execute setuid binaries.
+       *
+       * http://lwn.net/Articles/504879/
+       *
+       * If that's not available, we fall back to using SECBIT_NOROOT.
+       *
+       * Following the belt-and-suspenders model, we also make a
+       * MS_NOSUID bind mount below.
        */
-      if (prctl (PR_SET_SECUREBITS,
+      if (prctl (PR_SET_NO_NEW_PRIVS, 1) < 0 && errno != EINVAL)
+        fatal_errno ("prctl (PR_SET_NO_NEW_PRIVS)");
+      else if (prctl (PR_SET_SECUREBITS,
                  SECBIT_NOROOT | SECBIT_NOROOT_LOCKED) < 0)
         fatal_errno ("prctl (SECBIT_NOROOT)");
 
