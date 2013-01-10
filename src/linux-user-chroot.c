@@ -351,11 +351,15 @@ main (int      argc,
       if (mount (chroot_dir, chroot_dir, NULL, MS_BIND | MS_PRIVATE, NULL) < 0)
         fatal_errno ("mount (MS_BIND)");
 
-      if (mount (chroot_dir, "/", NULL, MS_MOVE, NULL) < 0)
-        fatal_errno ("mount (MS_MOVE)");
+      /* Only move if we're not actually just using / */
+      if (strcmp (chroot_dir, "/") != 0)
+        {
+          if (mount (chroot_dir, "/", NULL, MS_MOVE, NULL) < 0)
+            fatal_errno ("mount (MS_MOVE)");
 
-      if (chroot (".") < 0)
-        fatal_errno ("chroot");
+          if (chroot (".") < 0)
+            fatal_errno ("chroot");
+        }
       
       if (chdir (chdir_target) < 0)
         fatal_errno ("chdir");
