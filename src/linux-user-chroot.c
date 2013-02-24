@@ -361,15 +361,15 @@ main (int      argc,
             fatal_errno ("chroot");
         }
       
-      if (chdir (chdir_target) < 0)
-        fatal_errno ("chdir");
-
       /* Switch back to the uid of our invoking process.  These calls are
        * irrevocable - see setuid(2) */
       if (setgid (rgid) < 0)
         fatal_errno ("setgid");
       if (setuid (ruid) < 0)
         fatal_errno ("setuid");
+
+      if (chdir (chdir_target) < 0)
+        fatal_errno ("chdir");
 
       if (execvp (program, program_argv) < 0)
         fatal_errno ("execv");
