@@ -54,6 +54,16 @@
 #define PR_SET_NO_NEW_PRIVS	38
 #endif
 
+/* Totally arbitrary; we're just trying to mitigate somewhat against
+ * DoS attacks.  In practice uids can typically spawn multiple
+ * processes, so this isn't effective.  What is needed is for the
+ * kernel to understand we're creating bind mounts on behalf of a
+ * given uid.  Most likely this will happen if the kernel obsoletes
+ * this tool by allowing processes with PR_SET_NO_NEW_PRIVS to create
+ * private mounts or chroot.
+ */
+#define MAX_BIND_MOUNTS 1024
+
 static void fatal (const char *message, ...) __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 2)));
 static void fatal_errno (const char *message) __attribute__ ((noreturn));
 
@@ -145,7 +155,7 @@ main (int      argc,
   gid_t rgid, egid, sgid;
   int after_mount_arg_index;
   unsigned int n_mounts = 0;
-  const unsigned int max_mounts = 50; /* Totally arbitrary... */
+  const unsigned int max_mounts = MAX_BIND_MOUNTS;
   char **program_argv;
   MountSpec *bind_mounts = NULL;
   MountSpec *bind_mount_iter;
