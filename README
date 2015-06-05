@@ -5,24 +5,40 @@ This tool allows regular (non-root) users to call chroot(2), create
 Linux bind mounts, and use some Linux container features.  It's
 primarily intended for use by build systems.
 
-Project information
--------------------
+Contributing
+------------
 
-There's no web page yet; send patches to
-Colin Walters <walters@verbum.org>
+Currently, linux-user-chroot reuses
+the https://mail.gnome.org/mailman/listinfo/ostree-list
+mailing list.
+
+Please send patches there.
 
 Why is this useful?
 -------------------
 
-For build systems, being inside a chroot ensures that the build isn't
-picking up files it shouldn't be.  This helps avoid the problem of
-"host contamination", where e.g. we want libfoo.h from inside our
-root, not the one outside the root.
+There are a few well-known approaches for software build roots:
+ 
+ - Set up a chroot as root, then chroot in, and become non-root
+   This is the model currently used by both rpm and dpkg.
+   The problem with this is that if you want to build *two* packages
+   where B depends on A, then the `%post` type scripts from A run
+   as root, and hence need to be fully trusted.
+ - Use `LD_PRELOAD` emulation
+   This is implemented by https://github.com/wrpseudo/pseudo
+   The problem with this is that it's a speed hit, and maintaining
+   that sort of emulation is a long-term maintenance pain.
+ - Don't do any chrooting, use environment variables
+   This is implemented by `jhbuild`.  The problem with this is there
+   are a *lot* of these, and it's really easy to get "host contamination",
+   where we silently pick up `/usr/include/foo.h` instead of the one
+   from the root.
 
-Second, it helps avoid the fragility inherent in having to set up a
-large set of environment variables pointing to our root (e.g. PATH,
-LD_LIBRARY_PATH, XDG_DATA_DIRS, etc.).  Once we chroot, PATH is just
-the same as it normally is (/bin:/usr/bin).
+What linux-user-chroot does is a variant of the first, except instead
+of using root-owned files for the chroot, you simply make the chroot
+data as non-root, and run `%post` type scripts as non-root too.
+
+This works because we believe linux-user-chroot is secure; see below.
 
 Security
 --------
@@ -99,3 +115,9 @@ This binary can be installed in two modes:
 
 1) uwsr-xr-x  root:root - Executable by everyone
 2) uwsr-x---  root:somegroup - Executable only by somegroup
+
+Programs using linux-user-chroot
+--------------------------------
+
+ - https://github.com/CodethinkLabs/sandboxlib
+ - https://git.gnome.org/browse/gnome-continuous/ uses it for builds
