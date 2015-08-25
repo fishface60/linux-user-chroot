@@ -137,6 +137,18 @@ fsuid_chdir (uid_t       uid,
   return ret;
 }
 
+static inline int
+raw_clone (unsigned long flags, void *child_stack)
+{
+#if defined(__s390__) || defined(__CRIS__)
+  /* On s390 and cris the order of the first and second arguments
+   * of the raw clone() system call is reversed. */
+  return (int) syscall(__NR_clone, child_stack, flags);
+#else
+  return (int) syscall(__NR_clone, flags, child_stack);
+#endif
+}
+
 int
 main (int      argc,
       char   **argv)
@@ -301,7 +313,7 @@ main (int      argc,
   if (unshare_net)
     clone_flags |= CLONE_NEWNET;
 
-  if ((child = syscall (__NR_clone, clone_flags, NULL)) < 0)
+  if ((child = raw_clone (clone_flags, NULL)) < 0)
     fatal_errno ("clone");
 
   if (child == 0)
