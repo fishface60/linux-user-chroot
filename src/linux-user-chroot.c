@@ -8,7 +8,7 @@
  * distribution, allow privilege escalation.  See the README for more
  * details.
  *
- * Copyright 2011,2012 Colin Walters <walters@verbum.org>
+ * Copyright 2011,2012,2015 Colin Walters <walters@verbum.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,12 +43,6 @@
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <sched.h>
-#ifdef HAVE_LINUX_SECUREBITS_H
-#include <linux/securebits.h>
-#else
-#define SECBIT_NOROOT (1 << 0)
-#define SECBIT_NOROOT_LOCKED (1 << 1)
-#endif
 
 #ifndef PR_SET_NO_NEW_PRIVS
 #define PR_SET_NO_NEW_PRIVS	38
@@ -319,16 +313,15 @@ main (int      argc,
        *
        * http://lwn.net/Articles/504879/
        *
-       * If that's not available, we fall back to using SECBIT_NOROOT.
-       *
        * Following the belt-and-suspenders model, we also make a
-       * MS_NOSUID bind mount below.
+       * MS_NOSUID bind mount below.  I don't think this is strictly
+       * necessary, but at least we doubly ensure we're not going to
+       * be executing any setuid binaries from the host's /.  It
+       * doesn't help if there are any other mount points with setuid
+       * binaries, but `PR_SET_NO_NEW_PRIVS` fixes that.
        */
-      if (prctl (PR_SET_NO_NEW_PRIVS, 1) < 0 && errno != EINVAL)
+      if (prctl (PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0)
         fatal_errno ("prctl (PR_SET_NO_NEW_PRIVS)");
-      else if (prctl (PR_SET_SECUREBITS,
-                 SECBIT_NOROOT | SECBIT_NOROOT_LOCKED) < 0)
-        fatal_errno ("prctl (SECBIT_NOROOT)");
 
       /* This is necessary to undo the damage "sandbox" creates on Fedora
        * by making / a shared mount instead of private.  This isn't
