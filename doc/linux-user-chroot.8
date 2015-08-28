@@ -22,6 +22,7 @@ linux\-user\-chroot \- safely allow normal users to chroot
 .RB [ --unshare-ipc ] 
 .RB [ --unshare-pid ] 
 .RB [ --unshare-net ] 
+.RB [ --seccomp-profile-version ] 
 .RB [ --mount-proc " \fIDIR\fR] 
 .RB [ --mount-readonly " \fIDIR\fR"] 
 .RB [ --mount-bind " \fISOURCE DEST\fR"] 
@@ -86,6 +87,17 @@ Add a bind mount while the command is executing.
 .BI \-\-chdir " DIR"
 After setting the new root directory for the command,
 change the current working directory to be 
+.IR DIR .
+.TP
+.BI \-\-seccomp-profile-version " DIR"
+Seccomp is a tool to restrict the system calls applications
+can make.  As linux-user-chroot is designed for build systems,
+we do not need to expose the entire system to build processes;
+things like profiling should not happen during builds.
+
+This argument is an integer, where -1 means "no seccomp",
+and "0" enables the first profile version.  This is an
+opt-in system to any future versions.
 .IR DIR .
 .SH "EXIT STATUS"
 The exit status is the exit status of the executed command,

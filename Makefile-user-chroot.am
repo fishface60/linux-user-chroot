@@ -17,9 +17,13 @@
 
 bin_PROGRAMS += linux-user-chroot
 
-linux_user_chroot_SOURCES = src/linux-user-chroot.c
+linux_user_chroot_SOURCES = \
+	src/setup-seccomp.c \
+	src/linux-user-chroot.c \
+	$(NULL)
 
-linux_user_chroot_CFLAGS = $(AM_CFLAGS)
+linux_user_chroot_CFLAGS = $(AM_CFLAGS) $(LIBSECCOMP_CFLAGS)
+linux_user_chroot_LDFLAGS = $(LIBSECCOMP_LIBS)
 
 if BUILD_NEWNET_HELPER
 bin_PROGRAMS += linux-user-chroot-newnet

@@ -27,6 +27,7 @@
 
 #include "config.h"
 
+/* Core libc/linux-headers stuff */
 #define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
@@ -43,6 +44,8 @@
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <sched.h>
+
+#include "setup-seccomp.h"
 
 #ifndef PR_SET_NO_NEW_PRIVS
 #define PR_SET_NO_NEW_PRIVS	38
@@ -168,6 +171,7 @@ main (int      argc,
   int unshare_ipc = 0;
   int unshare_net = 0;
   int unshare_pid = 0;
+  int seccomp_profile_version = -1;
   int clone_flags = 0;
   int child_status = 0;
   pid_t child;
@@ -269,6 +273,14 @@ main (int      argc,
             fatal ("--chdir takes one argument");
 
           chdir_target = argv[after_mount_arg_index+1];
+          after_mount_arg_index += 2;
+        }
+      else if (strcmp (arg, "--seccomp-profile-version") == 0)
+        {
+          if ((argc - after_mount_arg_index) < 2)
+            fatal ("--seccomp-profile-version takes one argument");
+
+          seccomp_profile_version = atoi(argv[after_mount_arg_index+1]);
           after_mount_arg_index += 2;
         }
       else
@@ -410,6 +422,14 @@ main (int      argc,
 
       if (chdir (chdir_target) < 0)
         fatal_errno ("chdir");
+
+      /* Add the seccomp filters just before we exec */
+      if (seccomp_profile_version == 0)
+        setup_seccomp_v0 ();
+      else if (seccomp_profile_version == -1)
+        ;
+      else
+        fatal ("Unknown --seccomp-profile-version");
 
       if (execvp (program, program_argv) < 0)
         fatal_errno ("execv");

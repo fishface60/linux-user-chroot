@@ -24,6 +24,10 @@ AC_SUBST(WARN_CFLAGS)
 LT_PREREQ([2.2.4])
 LT_INIT([disable-static])
 
+PKG_CHECK_MODULES(LIBSECCOMP, [libseccomp])
+AC_SUBST(LIBSECCOMP_CFLAGS)
+AC_SUBST(LIBSECCOMP_LIBS)
+
 AC_ARG_ENABLE(documentation,
               AC_HELP_STRING([--enable-documentation],
                              [build documentation]),,
