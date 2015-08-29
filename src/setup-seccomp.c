@@ -154,8 +154,11 @@ setup_seccomp_v0 (void)
     {SCMP_SYS(pivot_root)},
     {SCMP_SYS(clone), &SCMP_A0(SCMP_CMP_MASKED_EQ, CLONE_NEWUSER, CLONE_NEWUSER)},
 
-    /* Utterly terrifying profiling operations */
-    {SCMP_SYS(perf_event_open)}
+    /* Profiling operations; we expect these to be done by tools from outside
+     * the sandbox.  In particular perf has been the source of many CVEs.
+     */
+    {SCMP_SYS(perf_event_open)},
+    {SCMP_SYS(ptrace)}
   };
   /* Blacklist all but unix, inet, inet6 and netlink */
   int socket_family_blacklist[] = {
