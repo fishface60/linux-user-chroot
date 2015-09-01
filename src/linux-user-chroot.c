@@ -1,12 +1,14 @@
 /* -*- mode: c; tab-width: 2; indent-tabs-mode: nil -*-
  *
- * linux-user-chroot: A setuid program that allows non-root users to safely chroot(2)
+ * linux-user-chroot: A setuid program for non-root users to safely create containers
  *
- * "safely": I believe that this program, when deployed as setuid on a
- * typical "distribution" such as RHEL or Debian, does not, even when
- * used in combination with typical software installed on that
- * distribution, allow privilege escalation.  See the README for more
- * details.
+ * This program is primarily intended for use by build systems.
+ *
+ * Let me elaborate on "safely": I believe that this program, when
+ * deployed as setuid on a typical "distribution" such as RHEL or
+ * Debian, does not, even when used in combination with typical
+ * software installed on that distribution, allow privilege
+ * escalation.  See the README for more details.
  *
  * Copyright 2011,2012,2015 Colin Walters <walters@verbum.org>
  *

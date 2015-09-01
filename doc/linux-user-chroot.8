@@ -32,7 +32,8 @@ linux\-user\-chroot \- safely allow normal users to chroot
 .IR ARGS...
 .SH DESCRIPTION
 .B linux\-user\-chroot
-is a tool meant for building software in a clean environment.
+is a setuid program that allows non-root users to safely use some Linux
+kernel container features.  It is primarily intended for use by build systems.
 The user needs to create a directory tree with the build dependencies needed,
 and only those,
 and then
