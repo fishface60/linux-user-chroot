@@ -45,10 +45,10 @@ Security
 
 **** IMPORTANT NOTE ****
 
-Installing this tool accessible to all users significantly increases
-their ability to perform local, authenticated denial of service
-attacks.  The intended mitigation against this is to ensure the tool
-is only executable by certain users.
+Installing this tool accessible to all users increases their ability
+to perform local, authenticated denial of service attacks.  One
+mitigation against this is to ensure the tool is only executable by
+certain users.
 
 **** IMPORTANT NOTE ****
 
@@ -56,14 +56,19 @@ The historical reason Unix doesn't allow chroot(2) as non-root is
 because of setuid binaries.  It's trivial to use chroot to create a
 hostile environment, then execute a setuid binary to subvert it.
 
-This tool closes that historical hole by simply disallowing privilege
-gain by execution of setuid binaries.  It creates a "nosuid" bind
-mount over "/".  This restriction is typically irrelevant for build
-systems.
+Since then, the Linux kernel has gained a per-process mode
+that disables setuid binaries, called `PR_SET_NO_NEW_PRIVS`:
+
+https://lwn.net/Articles/478062/
+
+While this tool itself is setuid, it enables that mode, thus ensuring
+any other setuid binaries (including recursive invocations of this
+tool) cannot be exploited.
 
 However, this tool also allows creating bind mounts, which currently
-have no resource controls.  This is why this tool is not intended to
-be installed by default.
+have no resource controls and occupy kernel memory.  This is why this
+tool is not intended to be installed by default and accessible to all
+users.
 
 Abilities granted
 -----------------
@@ -94,13 +99,19 @@ capabilities such as:
 
 See "man 2 clone" for more information.
 
+Additionally, the 2015.1 release of linux-user-chroot also gained
+support for seccomp, which is a strong way to restrict what system
+calls build systems can use.
+
 Example usage
 -------------
 
 Note here all files are owned by the user.
 
 $ mkdir -p /path/to/my/chroot/usr/src/project
-$ linux-user-chroot --unshare-pid --unshare-net --unshare-pid \
+$ linux-user-chroot \
+   --seccomp-profile-version 0 \
+   --unshare-pid --unshare-net --unshare-pid \
    --mount-proc /proc --mount-bind /dev /dev \
    --mount-bind /home/user/source/project /usr/src/project \
    /path/to/my/chroot /bin/sh
