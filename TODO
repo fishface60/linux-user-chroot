@@ -1,0 +1,20 @@
+Import read only system
+-----------------------
+
+I'd like to make it easy to capture just /usr from the host, without
+e.g. /home or any other network mounts.  Probably the easiest way to
+do this is `--tmpfs-root` or something, and have that auto-create
+mount points for `/dev` etc.  Then one could `--mount-bind /usr /usr`.
+
+seccomp profile +1
+------------------
+
+ - Look at what Chromium/ChromeOS are doing?
+
+Avoid creating any files as root/share tmpfs
+--------------------------------------------
+
+We're creating device nodes owned by root, which means
+quota is counted against root.  Can we share a tmpfs
+that we create as non-root, and ensure every file we
+make is owned by the target uid?
