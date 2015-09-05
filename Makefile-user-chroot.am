@@ -19,6 +19,7 @@ bin_PROGRAMS += linux-user-chroot
 
 linux_user_chroot_SOURCES = \
 	src/setup-seccomp.c \
+	src/setup-dev.c \
 	src/linux-user-chroot.c \
 	$(NULL)
 

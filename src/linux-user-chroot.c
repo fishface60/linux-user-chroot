@@ -48,6 +48,7 @@
 #include <sched.h>
 
 #include "setup-seccomp.h"
+#include "setup-dev.h"
 
 #ifndef PR_SET_NO_NEW_PRIVS
 #define PR_SET_NO_NEW_PRIVS	38
@@ -91,7 +92,8 @@ fatal_errno (const char *message)
 typedef enum {
   MOUNT_SPEC_BIND,
   MOUNT_SPEC_READONLY,
-  MOUNT_SPEC_PROCFS
+  MOUNT_SPEC_PROCFS,
+  MOUNT_SPEC_DEVAPI
 } MountSpecType;
 
 typedef struct _MountSpec MountSpec;
@@ -254,6 +256,22 @@ main (int      argc,
           bind_mounts = mount;
           after_mount_arg_index += 2;
         }
+      else if (strcmp (arg, "--mount-devapi") == 0)
+        {
+          MountSpec *mount;
+
+          if ((argc - after_mount_arg_index) < 2)
+            fatal ("--mount-devapi takes one argument");
+
+          mount = malloc (sizeof (MountSpec));
+          mount->type = MOUNT_SPEC_DEVAPI;
+          mount->source = NULL;
+          mount->dest = argv[after_mount_arg_index+1];
+          mount->next = bind_mounts;
+          
+          bind_mounts = mount;
+          after_mount_arg_index += 2;
+        }
       else if (strcmp (arg, "--unshare-ipc") == 0)
         {
           unshare_ipc = 1;
@@ -393,6 +411,11 @@ main (int      argc,
               if (mount ("proc", dest,
                          "proc", MS_MGC_VAL | MS_PRIVATE, NULL) < 0)
                 fatal_errno ("mount (\"proc\")");
+            }
+          else if (bind_mount_iter->type == MOUNT_SPEC_DEVAPI)
+            {
+              if (setup_dev (dest) < 0)
+                fatal_errno ("setting up devapi");
             }
           else
             assert (0);
