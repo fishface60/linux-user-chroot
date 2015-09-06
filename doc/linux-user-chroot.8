@@ -77,6 +77,10 @@ including loopback.
 Mount the proc filesystem at
 .IR DIR .
 .TP
+.BI \-\-mount\-devapi " DIR"
+Mount just the API devices (null, full, urandom etc) at
+.IR DIR .
+.TP
 .BI \-\-mount\-readonly " DIR"
 Make 
 .I DIR
@@ -90,16 +94,15 @@ After setting the new root directory for the command,
 change the current working directory to be 
 .IR DIR .
 .TP
-.BI \-\-seccomp-profile-version " DIR"
+.BI \-\-seccomp-profile-version " VERSION"
 Seccomp is a tool to restrict the system calls applications
 can make.  As linux-user-chroot is designed for build systems,
-we do not need to expose the entire system to build processes;
-things like profiling should not happen during builds.
+we do not need to expose the entire kernel system call interface.
+Currently a number of 
 
 This argument is an integer, where -1 means "no seccomp",
 and "0" enables the first profile version.  This is an
 opt-in system to any future versions.
-.IR DIR .
 .SH "EXIT STATUS"
 The exit status is the exit status of the executed command,
 or 1 if 
