@@ -356,13 +356,6 @@ main (int      argc,
        * privileges, even attempting to execute setuid binaries.
        *
        * http://lwn.net/Articles/504879/
-       *
-       * Following the belt-and-suspenders model, we also make a
-       * MS_NOSUID bind mount below.  I don't think this is strictly
-       * necessary, but at least we doubly ensure we're not going to
-       * be executing any setuid binaries from the host's /.  It
-       * doesn't help if there are any other mount points with setuid
-       * binaries, but `PR_SET_NO_NEW_PRIVS` fixes that.
        */
       if (prctl (PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0)
         fatal_errno ("prctl (PR_SET_NO_NEW_PRIVS)");
@@ -375,9 +368,13 @@ main (int      argc,
       if (mount (NULL, "/", "none", MS_PRIVATE | MS_REC, NULL) < 0)
         fatal_errno ("mount(/, MS_PRIVATE | MS_REC)");
 
-      /* I had thought that SECBIT_NOROOT was enough to be safe, but Serge E. Hallyn
-       * pointed out that setuid binaries still change uid to 0.  So let's just
-       * disallow them at the rootfs level.
+      /* We're going to be creating child mounts, so remount the rootfs here
+       * as private.  In the future we could switch this to MS_SLAVE, but
+       * I suspect most users won't want host mount points showing up by default.
+       *
+       * We also remount with NOSUID, even though PR_SET_NO_NEW_PRIVS
+       * should take care of that, following the belt-and-suspenders
+       * model.
        */
       if (mount (NULL, "/", "none", MS_PRIVATE | MS_REMOUNT | MS_NOSUID, NULL) < 0)
         fatal_errno ("mount(/, MS_PRIVATE | MS_REC | MS_NOSUID)");
