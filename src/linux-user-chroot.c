@@ -360,10 +360,11 @@ main (int      argc,
       if (prctl (PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0)
         fatal_errno ("prctl (PR_SET_NO_NEW_PRIVS)");
 
-      /* This is necessary to undo the damage "sandbox" creates on Fedora
-       * by making / a shared mount instead of private.  This isn't
-       * totally correct because the targets for our bind mounts may still
-       * be shared, but really, Fedora's sandbox is broken.
+      /* The rootfs propagation by default will be private, because
+       * systemd sets it up that way.  However, some utilities will make it
+       * shared, e.g. the "sandbox" tool on Fedora.
+       *
+       * If it is shared, then we can't use MS_MOVE to switch root.
        */
       if (mount (NULL, "/", "none", MS_PRIVATE | MS_REC, NULL) < 0)
         fatal_errno ("mount(/, MS_PRIVATE | MS_REC)");
