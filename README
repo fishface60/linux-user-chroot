@@ -132,3 +132,12 @@ Programs using linux-user-chroot
 
  - https://github.com/CodethinkLabs/sandboxlib
  - https://git.gnome.org/browse/gnome-continuous/ uses it for builds
+
+Related projects
+----------------
+
+Google's Bazel system has a similar tool:
+
+https://github.com/google/bazel/blob/master/src/main/tools/namespace-sandbox.c
+
+(Noted by the sandboxlib/README.rst list of related projects)
