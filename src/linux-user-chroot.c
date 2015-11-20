@@ -43,6 +43,7 @@
 #include <sys/prctl.h>
 #include <sys/fsuid.h>
 #include <sys/mount.h>
+#include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <sched.h>
@@ -138,6 +139,74 @@ fsuid_chdir (uid_t       uid,
   /* Note we don't check errors here because we can't, basically */
   (void) setfsuid (uid);
   ret = chdir (path);
+  errsv = errno;
+  (void) setfsuid (0);
+  errno = errsv;
+  return ret;
+}
+
+/**
+ * fsuid_fchdir:
+ * @uid: User id we should use
+ * @fd: Directory file descriptor
+ *
+ * Like fchdir() except we use the filesystem privileges of @uid.
+ */
+static int
+fsuid_fchdir (uid_t uid,
+              int   fd)
+{
+  int errsv;
+  int ret;
+  /* Note we don't check errors here because we can't, basically */
+  (void) setfsuid (uid);
+  ret = fchdir (fd);
+  errsv = errno;
+  (void) setfsuid (0);
+  errno = errsv;
+  return ret;
+}
+
+/**
+ * fsuid_open:
+ * @uid: User id we should use
+ * @path: Path string
+ *
+ * Like open() except we use the filesystem privileges of @uid.
+ */
+static int
+fsuid_open (uid_t       uid,
+            const char *path,
+            int         flags)
+{
+  int errsv;
+  int ret;
+  /* Note we don't check errors here because we can't, basically */
+  (void) setfsuid (uid);
+  ret = open (path, flags);
+  errsv = errno;
+  (void) setfsuid (0);
+  errno = errsv;
+  return ret;
+}
+
+/**
+ * fsuid_fstat:
+ * @uid: User id we should use
+ * @path: Path string
+ *
+ * Like fstat() except we use the filesystem privileges of @uid.
+ */
+static int
+fsuid_fstat (uid_t        uid,
+             int          fd,
+             struct stat *buf)
+{
+  int errsv;
+  int ret;
+  /* Note we don't check errors here because we can't, basically */
+  (void) setfsuid (uid);
+  ret = fstat (fd, buf);
   errsv = errno;
   (void) setfsuid (0);
   errno = errsv;
@@ -398,11 +467,29 @@ main (int      argc,
             }
           else if (bind_mount_iter->type == MOUNT_SPEC_BIND)
             {
-              if (fsuid_chdir (ruid, bind_mount_iter->source) < 0)
-                fatal ("Couldn't chdir to bind mount source");
-              if (mount (".", dest,
-                         NULL, MS_BIND | MS_PRIVATE, NULL) < 0)
-                fatal_errno ("mount (MS_BIND)");
+              int fd = -1;
+              struct stat st;
+              fd = fsuid_open (ruid, bind_mount_iter->source, O_RDONLY);
+              if (fd < 0)
+                fatal ("Couldn't open bind mount source");
+              if (fsuid_fstat (ruid, fd, &st) < 0)
+                fatal ("Couldn't fstat bind mount source");
+              if (S_ISDIR (st.st_mode))
+                {
+                  if (fsuid_fchdir (ruid, fd) < 0)
+                    fatal ("Couldn't chdir to bind mount source");
+                  if (mount (".", dest,
+                             NULL, MS_BIND | MS_PRIVATE, NULL) < 0)
+                    fatal_errno ("mount (MS_BIND)");
+                }
+              else
+                {
+                  char *src;
+                  asprintf (&src, "/proc/self/fd/%d", fd);
+                  if (mount (src, dest,
+                             NULL, MS_BIND | MS_PRIVATE, NULL) < 0)
+                    fatal_errno ("mount (MS_BIND)");
+                }
             }
           else if (bind_mount_iter->type == MOUNT_SPEC_PROCFS)
             {
